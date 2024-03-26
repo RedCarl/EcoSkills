@@ -20,12 +20,9 @@ import org.bukkit.event.player.PlayerGameModeChangeEvent
 import org.bukkit.event.player.PlayerJoinEvent
 import java.util.UUID
 
-private const val ACTION_BAR_DURATION = 2700L
-private const val TICK_DURATION = 50L
+private const val ACTION_BAR_DURATION = 1500L
 
 private val blacklist = mutableMapOf<UUID, Long>()
-
-private val whitelist = mutableMapOf<UUID, Long>()
 
 private val actionBarEnabledKey = PersistentDataKey(
     namespacedKeyOf("ecoskills", "actionbar_enabled"),
@@ -49,12 +46,13 @@ fun Player.sendCompatibleActionBarMessage(message: String) {
     )
 }
 
-fun Player.pausePersistentActionBar() {
-    if (isSendingPersistentActionBar) {
-        return
+fun Player.sendCompatibleActionBarMessage(message: String, time: Boolean) {
+    if (time){
+        sendPersistentActionBar(message)
     }
+}
 
-    blacklist[this.uniqueId] = System.currentTimeMillis() + ACTION_BAR_DURATION
+fun Player.pausePersistentActionBar() {
 }
 
 private val Player.isPersistentActionBarPaused: Boolean
@@ -64,15 +62,9 @@ private val Player.isPersistentActionBarPaused: Boolean
     }
 
 private fun Player.sendPersistentActionBar(message: String) {
-    whitelist[this.uniqueId] = System.currentTimeMillis() + TICK_DURATION
+    blacklist[this.uniqueId] = System.currentTimeMillis() + ACTION_BAR_DURATION
     sendCompatibleActionBarMessage(message)
 }
-
-private val Player.isSendingPersistentActionBar: Boolean
-    get() {
-        val time = whitelist[this.uniqueId] ?: return false
-        return time > System.currentTimeMillis()
-    }
 
 object ActionBarGamemodeListener : Listener {
     @EventHandler
@@ -107,7 +99,7 @@ class ActionBarHandler(
             player.healthScale = 20.0
         }
 
-        player.sendPersistentActionBar(
+        player.sendCompatibleActionBarMessage(
             plugin.configYml
                 .getFormattedString(
                     "persistent-action-bar.format", placeholderContext(

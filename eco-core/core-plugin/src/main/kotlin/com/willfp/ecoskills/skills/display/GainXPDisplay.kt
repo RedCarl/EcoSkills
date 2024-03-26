@@ -99,7 +99,7 @@ class GainXPDisplay(
         val message = plugin.configYml.getString("skills.gain-xp.action-bar.message")
             .formatMessage(event)
 
-        player.sendCompatibleActionBarMessage(message)
+        player.sendCompatibleActionBarMessage(message,true)
     }
 
     private fun String.formatMessage(event: PlayerSkillXPGainEvent): String =
